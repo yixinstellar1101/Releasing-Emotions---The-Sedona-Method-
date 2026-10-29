@@ -1,79 +1,101 @@
-/* A quiet breathing rhythm; the button itself keeps a stable touch target. */
-.release-orb, .release-orb:hover {
+﻿/* Reserve space for the entire breathing cycle, away from tags and text. */
+.breathing-stage {
+  position: relative;
   isolation: isolate;
-  box-shadow: none;
+  display: grid;
+  place-items: center;
+  height: 204px;
+  margin: 8px 0 4px;
+  overflow: hidden;
 }
-.release-orb::before, .release-orb::after {
+.breathing-stage::before, .breathing-stage::after {
   content: '';
   position: absolute;
-  inset: -15px;
-  z-index: -1;
-  border-radius: 50%;
-  background: #edf2e4;
-  opacity: .7;
   pointer-events: none;
-  animation: orb-breath 8s ease-in-out infinite;
+  border-radius: 50%;
 }
-.release-orb::after {
-  inset: -29px;
-  z-index: -2;
-  background: #f3f6ed;
-  animation-name: orb-breath-outer;
+.breathing-stage::before {
+  width: 184px;
+  height: 184px;
+  left: calc(50% - 92px);
+  top: calc(50% - 92px);
+  background: radial-gradient(circle, #dce8ca80 0%, #e6eedb60 45%, #edf3e433 64%, transparent 72%);
+  animation: halo-breath 8s ease-in-out infinite;
+}
+.breathing-stage::after {
+  width: 144px;
+  height: 144px;
+  left: calc(50% - 72px);
+  top: calc(50% - 72px);
+  border: 1px solid #b9c9a754;
+  animation: ring-breath 8s ease-in-out infinite;
+}
+.release-orb, .release-orb:hover {
+  z-index: 1;
+  width: 96px;
+  height: 96px;
+  margin: 0;
+  border: 1px solid #dce5d2;
+  background: radial-gradient(circle at 42% 38%, #f5f8ee, #eaf1e0);
+  box-shadow: none;
 }
 .release-orb svg {
-  animation: leaf-breath 8s ease-in-out infinite;
+  width: 32px;
+  height: 32px;
+  color: #788e65;
+  stroke-width: 1.2;
 }
-@keyframes orb-breath {
-  0%, 100% { transform: scale(.94); opacity: .5; }
-  50% { transform: scale(1.09); opacity: .85; }
+.release-orb:focus-visible { outline-offset: 7px; }
+.visual-cue {
+  position: relative;
+  margin: 0 0 24px;
+  padding: 0 8px;
+  color: #6d805f;
+  font-size: 12px;
+  line-height: 1.9;
 }
-@keyframes orb-breath-outer {
-  0%, 100% { transform: scale(.96); opacity: .55; }
-  50% { transform: scale(1.1); opacity: .9; }
+.visual-cue span {
+  display: block;
+  margin-top: 4px;
+  color: #909b86;
+  font-size: 11px;
 }
-@keyframes leaf-breath {
-  0%, 100% { transform: translateY(2px) rotate(-3deg); }
-  50% { transform: translateY(-2px) rotate(3deg); }
+@keyframes halo-breath {
+  0%, 100% { transform: scale(.88); opacity: .5; }
+  50% { transform: scale(1.08); opacity: .9; }
 }
-/* Hover feedback only on devices with a precise pointer. */
+@keyframes ring-breath {
+  0%, 100% { transform: scale(.88); opacity: .35; }
+  50% { transform: scale(1.1); opacity: .7; }
+}
+/* Stable labels and restrained hover feedback on desktop. */
 @media (hover: hover) and (pointer: fine) {
   button {
-    transition: background-color .18s ease, border-color .18s ease,
-      color .18s ease, box-shadow .18s ease, transform .18s ease;
-  }
-  button:enabled:not(.release-orb):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 14px #49674d15;
+    transition: background-color .2s ease, border-color .2s ease,
+      color .2s ease, box-shadow .2s ease;
   }
   :is(.answer-option, .chip, .want-card, .emotion-card, .record-card):enabled:hover {
-    border-color: #9bae8a;
-    background-color: #f0f5e9;
+    border-color: #a4b596;
+    background-color: #f2f6ec;
   }
   :is(.answer-option, .chip, .want-card, .emotion-card).selected:enabled:hover {
-    background-color: #dfe9d5;
-    border-color: #829c6f;
+    background-color: #e2ebd8;
+    border-color: #8fa47b;
   }
-  .button.secondary:enabled:hover { background-color: #e4ecda; }
-  .button.ghost:enabled:hover { background-color: #f0f3e9; color: #49674d; }
+  .button.primary:enabled:hover { box-shadow: 0 3px 9px #49674d1a; }
+  .button.secondary:enabled:hover { background-color: #e8efdf; }
+  .button.ghost:enabled:hover { color: #49674d; }
   .button.danger:enabled:hover { background-color: #faeee8; }
-  :is(.text-chip, .new-practice, .round-help button, .close-btn):enabled:hover {
-    color: #3c5b37;
-    background-color: #e8eee2;
-  }
-  .release-orb:enabled:hover { background: #e0ead4; }
-  .release-orb:enabled:hover svg { color: #49674d; }
-  button:enabled:not(.release-orb):active {
-    transform: translateY(0);
-    box-shadow: none;
-  }
+  :is(.text-chip, .new-practice, .round-help button, .close-btn):enabled:hover { color: #3c5b37; }
+  .close-btn:enabled:hover { background-color: #edf2e6; }
+  .release-orb:enabled:hover { border-color: #afc19d; box-shadow: 0 0 0 4px #dce8ce33; }
+  .release-orb:enabled:hover svg { color: #526e43; }
+  .button.primary:enabled:active { box-shadow: none; }
 }
-html[data-motion='quiet'] .release-orb::before,
-html[data-motion='quiet'] .release-orb::after,
-html[data-motion='quiet'] .release-orb svg { animation: none; }
+html[data-motion='quiet'] .breathing-stage::before,
+html[data-motion='quiet'] .breathing-stage::after { animation: none; }
 html[data-motion='quiet'] button { transition: none; }
-html[data-motion='quiet'] button:enabled:not(.release-orb):hover { transform: none; }
 @media (prefers-reduced-motion: reduce) {
-  .release-orb::before, .release-orb::after, .release-orb svg { animation: none; }
+  .breathing-stage::before, .breathing-stage::after { animation: none; }
   button { transition: none; }
-  button:enabled:not(.release-orb):hover { transform: none; }
 }
