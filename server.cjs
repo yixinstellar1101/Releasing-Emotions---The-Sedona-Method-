@@ -15,7 +15,8 @@ const files = new Map([
   ['/themes.css', ['themes.css', 'text/css; charset=utf-8']],
   ['/theme-data.js', ['theme-data.js', 'text/javascript; charset=utf-8']],
   ['/practice-notes.js', ['practice-notes.js', 'text/javascript; charset=utf-8']],
-  ['/practice-notes.css', ['practice-notes.css', 'text/css; charset=utf-8']]
+  ['/practice-notes.css', ['practice-notes.css', 'text/css; charset=utf-8']],
+  ['/motion-interactions.css', ['motion-interactions.css', 'text/css; charset=utf-8']]
 ]);
 const server = http.createServer((req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;

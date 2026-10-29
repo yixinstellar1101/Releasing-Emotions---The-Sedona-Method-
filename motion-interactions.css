@@ -1,0 +1,79 @@
+/* A quiet breathing rhythm; the button itself keeps a stable touch target. */
+.release-orb, .release-orb:hover {
+  isolation: isolate;
+  box-shadow: none;
+}
+.release-orb::before, .release-orb::after {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  z-index: -1;
+  border-radius: 50%;
+  background: #edf2e4;
+  opacity: .7;
+  pointer-events: none;
+  animation: orb-breath 8s ease-in-out infinite;
+}
+.release-orb::after {
+  inset: -29px;
+  z-index: -2;
+  background: #f3f6ed;
+  animation-name: orb-breath-outer;
+}
+.release-orb svg {
+  animation: leaf-breath 8s ease-in-out infinite;
+}
+@keyframes orb-breath {
+  0%, 100% { transform: scale(.94); opacity: .5; }
+  50% { transform: scale(1.09); opacity: .85; }
+}
+@keyframes orb-breath-outer {
+  0%, 100% { transform: scale(.96); opacity: .55; }
+  50% { transform: scale(1.1); opacity: .9; }
+}
+@keyframes leaf-breath {
+  0%, 100% { transform: translateY(2px) rotate(-3deg); }
+  50% { transform: translateY(-2px) rotate(3deg); }
+}
+/* Hover feedback only on devices with a precise pointer. */
+@media (hover: hover) and (pointer: fine) {
+  button {
+    transition: background-color .18s ease, border-color .18s ease,
+      color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  button:enabled:not(.release-orb):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px #49674d15;
+  }
+  :is(.answer-option, .chip, .want-card, .emotion-card, .record-card):enabled:hover {
+    border-color: #9bae8a;
+    background-color: #f0f5e9;
+  }
+  :is(.answer-option, .chip, .want-card, .emotion-card).selected:enabled:hover {
+    background-color: #dfe9d5;
+    border-color: #829c6f;
+  }
+  .button.secondary:enabled:hover { background-color: #e4ecda; }
+  .button.ghost:enabled:hover { background-color: #f0f3e9; color: #49674d; }
+  .button.danger:enabled:hover { background-color: #faeee8; }
+  :is(.text-chip, .new-practice, .round-help button, .close-btn):enabled:hover {
+    color: #3c5b37;
+    background-color: #e8eee2;
+  }
+  .release-orb:enabled:hover { background: #e0ead4; }
+  .release-orb:enabled:hover svg { color: #49674d; }
+  button:enabled:not(.release-orb):active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+}
+html[data-motion='quiet'] .release-orb::before,
+html[data-motion='quiet'] .release-orb::after,
+html[data-motion='quiet'] .release-orb svg { animation: none; }
+html[data-motion='quiet'] button { transition: none; }
+html[data-motion='quiet'] button:enabled:not(.release-orb):hover { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .release-orb::before, .release-orb::after, .release-orb svg { animation: none; }
+  button { transition: none; }
+  button:enabled:not(.release-orb):hover { transform: none; }
+}

@@ -62,6 +62,88 @@ dialog{border:1px solid var(--line);border-radius:23px;padding:0;width:min(620px
 @media(max-width:760px),(max-height:500px) and (pointer:coarse){.practice-tools{padding:16px;margin-bottom:20px}.practice-tools>summary{font-size:14px;min-height:44px}.practice-tool-grid{grid-template-columns:minmax(0,1fr);gap:9px}.practice-tool-card{padding:15px 16px}.practice-tool-card strong{font-size:15px}.practice-tool-card span{font-size:12px}.prepare-release summary,.prepare-release p,.feeling-cue p{font-size:13px}.prepare-release summary,.feeling-cue summary{min-height:32px}.prepare-release button,.stuck-tool-link{font-size:13px;min-height:44px}.feeling-cue summary,.feeling-cue ul{font-size:12px}.tool-description{font-size:14px}.tool-field>span,.tool-focus-label{font-size:13px}.tool-field input,.tool-field textarea{font-size:16px}.tool-focus-choice{font-size:14px;min-height:48px;padding:12px}.tool-hint,.tool-draft-note,.source-notes{font-size:12px}.tool-error{font-size:13px}.tool-dialog-actions{display:grid;grid-template-columns:minmax(0,1fr)}.return-to-practice p{font-size:13px}.return-to-practice .button{width:100%}.principle-list li{font-size:14px}}
 
 </style>
+  <style>
+/* A quiet breathing rhythm; the button itself keeps a stable touch target. */
+.release-orb, .release-orb:hover {
+  isolation: isolate;
+  box-shadow: none;
+}
+.release-orb::before, .release-orb::after {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  z-index: -1;
+  border-radius: 50%;
+  background: #edf2e4;
+  opacity: .7;
+  pointer-events: none;
+  animation: orb-breath 8s ease-in-out infinite;
+}
+.release-orb::after {
+  inset: -29px;
+  z-index: -2;
+  background: #f3f6ed;
+  animation-name: orb-breath-outer;
+}
+.release-orb svg {
+  animation: leaf-breath 8s ease-in-out infinite;
+}
+@keyframes orb-breath {
+  0%, 100% { transform: scale(.94); opacity: .5; }
+  50% { transform: scale(1.09); opacity: .85; }
+}
+@keyframes orb-breath-outer {
+  0%, 100% { transform: scale(.96); opacity: .55; }
+  50% { transform: scale(1.1); opacity: .9; }
+}
+@keyframes leaf-breath {
+  0%, 100% { transform: translateY(2px) rotate(-3deg); }
+  50% { transform: translateY(-2px) rotate(3deg); }
+}
+/* Hover feedback only on devices with a precise pointer. */
+@media (hover: hover) and (pointer: fine) {
+  button {
+    transition: background-color .18s ease, border-color .18s ease,
+      color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  button:enabled:not(.release-orb):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px #49674d15;
+  }
+  :is(.answer-option, .chip, .want-card, .emotion-card, .record-card):enabled:hover {
+    border-color: #9bae8a;
+    background-color: #f0f5e9;
+  }
+  :is(.answer-option, .chip, .want-card, .emotion-card).selected:enabled:hover {
+    background-color: #dfe9d5;
+    border-color: #829c6f;
+  }
+  .button.secondary:enabled:hover { background-color: #e4ecda; }
+  .button.ghost:enabled:hover { background-color: #f0f3e9; color: #49674d; }
+  .button.danger:enabled:hover { background-color: #faeee8; }
+  :is(.text-chip, .new-practice, .round-help button, .close-btn):enabled:hover {
+    color: #3c5b37;
+    background-color: #e8eee2;
+  }
+  .release-orb:enabled:hover { background: #e0ead4; }
+  .release-orb:enabled:hover svg { color: #49674d; }
+  button:enabled:not(.release-orb):active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+}
+html[data-motion='quiet'] .release-orb::before,
+html[data-motion='quiet'] .release-orb::after,
+html[data-motion='quiet'] .release-orb svg { animation: none; }
+html[data-motion='quiet'] button { transition: none; }
+html[data-motion='quiet'] button:enabled:not(.release-orb):hover { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .release-orb::before, .release-orb::after, .release-orb svg { animation: none; }
+  button { transition: none; }
+  button:enabled:not(.release-orb):hover { transform: none; }
+}
+
+</style>
 </head>
 <body>
   <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
@@ -2318,6 +2400,8 @@ window.SEDONA_PRACTICE_NOTES = {
   let mapCategoryChoice=null,mapSearchQuery='',visualTimer=null,visualDone=null;
   const motionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
   let quietMotion=false;try{quietMotion=localStorage.getItem('songjian.motion')==='quiet';}catch{}
+  function syncMotionPreference(){document.documentElement.dataset.motion=quietMotion?'quiet':'full';}
+  syncMotionPreference();
 
   const wants = [
     {id:'control',name:'想要控制',en:'Wanting Control',symbol:'control',prompt:'我希望什么必须改变，或必须按我的方式发生？',hint:'也可能是：急着消除感受、追求完美，或想让别人改变。',keys:['控制','必须','应该','一定','完美','改变','按我','赶快','立刻','释放不掉','结果']},
@@ -2469,7 +2553,7 @@ window.SEDONA_PRACTICE_NOTES = {
     if(draft.step===2)html=frame('这份感受背后，我在想要什么？','留意哪一句触动你。几种想要可能同时存在，不必分析出唯一答案。',`<div id="wantSuggestions" class="suggestion"></div><div class="want-list">${wants.map(w=>`<button class="want-card ${draft.wants.includes(w.id)?'selected':''}" data-want="${w.id}" aria-pressed="${draft.wants.includes(w.id)}"><span class="want-symbol">${icon(w.symbol)}</span><span><span class="want-name">${w.name}<span class="want-en" lang="en">${w.en}</span></span><small>${w.prompt}<br>${w.hint}</small></span><span class="checkmark" aria-hidden="true">✓</span></button>`).join('')}</div><div class="chips" style="margin-top:13px"><button class="chip ${draft.wants.includes('unsure')?'selected':''}" data-want="unsure" aria-pressed="${draft.wants.includes('unsure')}">暂时不确定</button></div><div class="help-note">松开的是“非这样不可”的紧抓。你的目标、现实需要和边界都可以保留。</div>${voiceField('wantNote','我留意到…（选填）','例如：我很想确认对方没有讨厌我。',2)}`,`${backButton()}${nextButton('进入释放')}`);
     if(draft.step===3){
       const n=draft.releaseStep,q=questions[n],answer=draft.answers[n]?.answer,idx=q?.options.indexOf(answer);const progress=`<div class="mini-progress" aria-label="本轮第 ${n+1} 步，共5步">${Array.from({length:5},(_,i)=>`<span class="${i===n?'active':i<n?'done':''}"></span>`).join('')}</div>`;const selected=[...draft.emotions,...draft.wants.map(wantLabel)];
-      const content=n<4?`${progress}<div class="focus-tags chips">${selected.map(s=>`<span class="snapshot-tag">${esc(s)}</span>`).join('')}</div><button class="release-orb" id="visualizeRelease" aria-label="播放轻轻放下的意象动画">${icon('leaf')}</button><p class="visual-cue">轻触叶子，看一个放下的意象</p><div class="release-focus">${q.title}</div><p class="release-sub">${q.sub}</p><div class="answer-options">${q.options.map((s,i)=>`<button class="answer-option ${answer===s?'selected':''}" data-answer="${i}" aria-pressed="${answer===s}">${s}</button>`).join('')}</div><div class="answer-feedback" id="answerFeedback" role="status">${idx>=0?q.feedback[idx]:'选一个真实的回答。没有标准答案。'}</div><div class="round-help"><button id="inlineStuck">有点卡住，给自己一个提醒</button></div>`:`${progress}<div class="help-note">先停一下，再次想到这个主题，听听身体和直觉的回答。新的情绪、余感或没有变化，都可以如实记录；不必到零或某种指定状态才结束。</div><div class="field-block">${rangeField('roundAfter','回到感受，直觉上还剩多少？')}</div><p class="summary-detail">这一轮开始时：${draft.roundBefore} / 10。这里只是对比感受，不是练习评分。</p>${voiceField('roundNote','这一轮，我发现…（选填）','有什么松动、新的感受，或者没有变化？',3)}<div class="repeat-release-panel"><div><strong>情绪还剩下一点？</strong><p>保留这一轮记录，回到“允许感受在这里”，再慢慢松开一点。</p></div><button class="button primary" id="repeatFromCheck">还有一点，再释放一轮 ↻</button></div>`;
+      const content=n<4?`${progress}<div class="focus-tags chips">${selected.map(s=>`<span class="snapshot-tag">${esc(s)}</span>`).join('')}</div><button class="release-orb" id="visualizeRelease" aria-label="播放轻轻放下的意象动画">${icon('leaf')}</button><p class="visual-cue">按自己的节奏呼吸 · 轻触叶子，看一个放下的意象</p><div class="release-focus">${q.title}</div><p class="release-sub">${q.sub}</p><div class="answer-options">${q.options.map((s,i)=>`<button class="answer-option ${answer===s?'selected':''}" data-answer="${i}" aria-pressed="${answer===s}">${s}</button>`).join('')}</div><div class="answer-feedback" id="answerFeedback" role="status">${idx>=0?q.feedback[idx]:'选一个真实的回答。没有标准答案。'}</div><div class="round-help"><button id="inlineStuck">有点卡住，给自己一个提醒</button></div>`:`${progress}<div class="help-note">先停一下，再次想到这个主题，听听身体和直觉的回答。新的情绪、余感或没有变化，都可以如实记录；不必到零或某种指定状态才结束。</div><div class="field-block">${rangeField('roundAfter','回到感受，直觉上还剩多少？')}</div><p class="summary-detail">这一轮开始时：${draft.roundBefore} / 10。这里只是对比感受，不是练习评分。</p>${voiceField('roundNote','这一轮，我发现…（选填）','有什么松动、新的感受，或者没有变化？',3)}<div class="repeat-release-panel"><div><strong>情绪还剩下一点？</strong><p>保留这一轮记录，回到“允许感受在这里”，再慢慢松开一点。</p></div><button class="button primary" id="repeatFromCheck">还有一点，再释放一轮 ↻</button></div>`;
       html=frame(n<4?'给感受一点空间。':'此刻，有什么不一样？',n<4?'读一遍问题，停一下，回到身体和真实的感受。':'不需要达到某个数值，才允许自己结束。',content,`<button class="button ghost" id="releaseBack">← ${n===0?'看见想要':'前一个问题'}</button><button class="button primary" id="releaseNext" ${n<4&&!answer?'disabled':''}>${n===4?'完成这一轮':'继续'}${icon('arrow')}</button>`);
     }
     if(draft.step===4){const after=draft.rounds.at(-1)?.after??draft.before;html=frame('谢谢你，陪自己走到这里。','这次可以结束，也可以再看见一层新的感受。',`${draft.saved?`<div class="success-mark">${icon('check')}这次练习已保存。<button class="saved-record-link" id="viewSaved">查看记录</button></div>`:''}<div class="round-summary"><div class="score"><b>${draft.before}</b><span>开始时</span></div>${icon('arrow')}<div class="score"><b>${after}</b><span>此刻</span></div><span class="muted small">/ 10</span></div><p class="summary-detail">${after<draft.before?'也许有一点空间出现了。留意此刻的体验，无需抓住这份变化。':after>draft.before?'你可能看见了更多感受。可以再练习，也可以先休息，照顾此刻的自己。':'没有明显变化也可以。真实地看见这一刻，就可以停下来。'}</p><div class="rounds">${draft.rounds.map((r,i)=>`<div class="round-row"><span>第 ${i+1} 轮 · ${esc(r.emotions.join('、'))}</span><span>${r.before} → ${r.after}</span></div>`).join('')}</div>${voiceField('note','给这次练习留几句话（选填）','我留意到什么？现在更需要什么？',3)}<div class="field-block">${voiceField('action','接下来，我想照顾自己的一件小事（选填）','例如：喝点水，走一走，或把需要的话说清楚。',2)}</div><div class="actions" style="margin-top:19px"><button class="button secondary" id="repeatRound">再释放一轮</button><button class="button" id="reidentify">看看新的情绪</button></div>`,`<button class="button ghost" id="newSession">开始新的练习</button>${draft.saved?'<button class="button primary" id="showRecords">查看释放记录</button>':nextButton('保存这次记录','saveSession')}`);}
@@ -2608,8 +2692,8 @@ window.SEDONA_PRACTICE_NOTES = {
   $$('[data-view]').forEach(el=>el.addEventListener('click',()=>showView(el.dataset.view)));$$('[data-close]').forEach(el=>el.addEventListener('click',()=>$(`#${el.dataset.close}`).close()));
   $$('dialog').forEach(dialog=>dialog.addEventListener('click',e=>{if(e.target===dialog){const rect=dialog.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)dialog.close();}}));
   $('#confirmYes').addEventListener('click',()=>{const action=confirmAction;confirmAction=null;$('#confirmDialog').close();action?.();});$('#confirmDialog').addEventListener('close',()=>confirmAction=null);
-  $('#motionPreference').checked=quietMotion;$('#motionPreference').addEventListener('change',()=>{quietMotion=$('#motionPreference').checked;$('#quietMotion').checked=quietMotion;try{localStorage.setItem('songjian.motion',quietMotion?'quiet':'full');}catch{}});
-  $('#finishReleaseVisual').addEventListener('click',finishReleaseVisual);$('#releaseVisual').addEventListener('cancel',event=>{event.preventDefault();finishReleaseVisual();});$('#releaseVisual').addEventListener('close',()=>{if(!$('#releaseVisual').open&&visualTimer!==null)finishReleaseVisual();});$('#quietMotion').addEventListener('change',()=>{quietMotion=$('#quietMotion').checked;$('#motionPreference').checked=quietMotion;try{localStorage.setItem('songjian.motion',quietMotion?'quiet':'full');}catch{}if(quietMotion)finishReleaseVisual();});motionQuery.addEventListener?.('change',()=>{if(motionQuery.matches&&$('#releaseVisual').open)finishReleaseVisual();});
+  $('#motionPreference').checked=quietMotion;$('#motionPreference').addEventListener('change',()=>{quietMotion=$('#motionPreference').checked;syncMotionPreference();$('#quietMotion').checked=quietMotion;try{localStorage.setItem('songjian.motion',quietMotion?'quiet':'full');}catch{}});
+  $('#finishReleaseVisual').addEventListener('click',finishReleaseVisual);$('#releaseVisual').addEventListener('cancel',event=>{event.preventDefault();finishReleaseVisual();});$('#releaseVisual').addEventListener('close',()=>{if(!$('#releaseVisual').open&&visualTimer!==null)finishReleaseVisual();});$('#quietMotion').addEventListener('change',()=>{quietMotion=$('#quietMotion').checked;syncMotionPreference();$('#motionPreference').checked=quietMotion;try{localStorage.setItem('songjian.motion',quietMotion?'quiet':'full');}catch{}if(quietMotion)finishReleaseVisual();});motionQuery.addEventListener?.('change',()=>{if(motionQuery.matches&&$('#releaseVisual').open)finishReleaseVisual();});
   $('#startTheme').addEventListener('click',startTheme);$('#viewThemeRecords').addEventListener('click',viewThemeRecords);
   bindPracticeToolButtons();$('#startPracticeTool').addEventListener('click',startPracticeTool);
   $('#newPractice').addEventListener('click',startNew);$('#stuckButton').addEventListener('click',openStuck);$('#continueStuck').addEventListener('click',()=>{logReminder();$('#stuckDialog').close();toast('不急，按自己的节奏继续。');});$('#pauseSession').addEventListener('click',()=>{logReminder();saveRecord('paused');$('#stuckDialog').close();recordWantFilter='all';$('#recordSearch').value='';showView('records');});
